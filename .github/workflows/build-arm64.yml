@@ -1,0 +1,56 @@
+name: Build readsb for Raspberry Pi (aarch64)
+
+on:
+  push:
+    branches: [ dev ]
+  workflow_dispatch:
+
+jobs:
+  build-arm64:
+    name: Cross-build .deb for ARM64
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up ARM64 cross environment
+        run: |
+          sudo dpkg --add-architecture arm64
+          sudo apt update
+          sudo apt install -y \
+            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+            make dpkg-dev debhelper \
+            libzstd-dev:arm64 zlib1g-dev:arm64 \
+            libncurses-dev:arm64 libtinfo-dev:arm64
+
+      - name: Cross-compile readsb
+        run: |
+          export CC=aarch64-linux-gnu-gcc
+          export CXX=aarch64-linux-gnu-g++
+          export LDFLAGS="-L/usr/lib/aarch64-linux-gnu"
+          export CPPFLAGS="-I/usr/include/aarch64-linux-gnu"
+          make clean
+          make -j$(nproc)
+
+      - name: Build .deb package
+        run: |
+          mkdir -p build/DEBIAN
+          mkdir -p build/usr/local/bin
+          cp readsb build/usr/local/bin/
+
+          cat <<EOF > build/DEBIAN/control
+          Package: readsb
+          Version: 1.0
+          Architecture: arm64
+          Maintainer: you@example.com
+          Description: ADS-B decoder and Mode-S beast client
+          EOF
+
+          dpkg-deb --build build readsb-arm64.deb
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: readsb-arm64
+          path: readsb-arm64.deb
