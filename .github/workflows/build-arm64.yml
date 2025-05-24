@@ -18,7 +18,8 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y build-essential make dpkg-dev debhelper \
-            libzstd-dev zlib1g-dev libncurses-dev libtinfo-dev
+            libzstd-dev zlib1g-dev libncurses-dev libtinfo-dev \
+            librtlsdr2 librtlsdr-dev
 
       - name: Build readsb
         run: |
@@ -29,7 +30,10 @@ jobs:
         run: |
           export DEB_BUILD_OPTIONS=noddebs
           dpkg-buildpackage -b -Prtlsdr -ui -uc -us
-          sudo dpkg -i ../readsb_*.deb
+
+      - name: Rename .deb file
+        run: |
+          mv ../readsb_*.deb readsb-arm64.deb
 
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
