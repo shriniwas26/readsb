@@ -17,9 +17,10 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y build-essential make dpkg-dev debhelper \
-            libzstd-dev zlib1g-dev libncurses-dev libtinfo-dev \
-            librtlsdr2 librtlsdr-dev
+          sudo apt install --no-install-recommends --no-install-suggests -y \
+              git build-essential debhelper libusb-1.0-0-dev \
+              librtlsdr-dev librtlsdr0 pkg-config fakeroot \
+              libncurses-dev zlib1g-dev zlib1g libzstd-dev libzstd1
 
       - name: Build readsb
         run: |
